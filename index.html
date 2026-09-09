@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>철판 중량 자동 계산기</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, "Noto Sans KR", sans-serif;
+      background: #f5f6f8;
+      color: #222;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .header p {
+      margin: 0;
+      color: #666;
+      line-height: 1.6;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 13px 12px;
+      border: 1px solid #cfd3d8;
+      border-radius: 10px;
+      font-size: 16px;
+      background: #fff;
+    }
+    input:focus, select:focus {
+      outline: 2px solid #333;
+      outline-offset: 1px;
+    }
+    .full { grid-column: 1 / -1; }
+    .result {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .result-box {
+      background: #f8f9fb;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .result-box .name {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .result-box .value {
+      font-size: 28px;
+      font-weight: 800;
+      word-break: break-word;
+    }
+    .result-box .sub {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #666;
+    }
+    .formula {
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    .notice {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.6;
+    }
+    .error {
+      color: #b00020;
+      font-size: 14px;
+      margin-top: 12px;
+      min-height: 20px;
+    }
+    .small-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 0 0 12px;
+    }
+    @media (max-width: 600px) {
+      .grid, .result { grid-template-columns: 1fr; }
+      .full { grid-column: auto; }
+      .header h1 { font-size: 24px; }
+      .result-box .value { font-size: 25px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="header">
+      <h1>철판 중량 자동 계산기</h1>
+      <p>재질, 가로, 세로, 두께, 수량을 입력하면<br>철판 1장 중량과 전체 중량을 자동 계산합니다.</p>
+    </section>
+
+    <section class="card">
+      <h2 class="small-title">철판 규격 입력</h2>
+      <div class="grid">
+        <div>
+          <label for="material">재질</label>
+          <select id="material">
+            <option value="7.85">일반 철판 / 탄소강 (7.85)</option>
+            <option value="7.93">STS304 (7.93)</option>
+            <option value="7.98">STS316 (7.98)</option>
+            <option value="2.70">알루미늄 (2.70)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="qty">수량 (장)</label>
+          <input id="qty" type="number" min="1" step="1" value="1" />
+        </div>
+
+        <div>
+          <label for="width">가로 폭 (mm)</label>
+          <input id="width" type="number" min="0.01" step="any" value="1219" />
+        </div>
+
+        <div>
+          <label for="length">세로 길이 (mm)</label>
+          <input id="length" type="number" min="0.01" step="any" value="2438" />
+        </div>
+
+        <div class="full">
+          <label for="thickness">두께 T (mm)</label>
+          <input id="thickness" type="number" min="0.01" step="any" value="3.2" />
+        </div>
+      </div>
+      <div id="error" class="error" aria-live="polite"></div>
+    </section>
+
+    <section class="result">
+      <div class="result-box">
+        <div class="name">철판 1장 중량</div>
+        <div id="singleResult" class="value">74.17 kg</div>
+      </div>
+      <div class="result-box">
+        <div class="name">전체 중량</div>
+        <div id="totalResult" class="value">74.17 kg</div>
+        <div id="tonResult" class="sub">0.074 톤</div>
+      </div>
+    </section>
+
+    <section class="card formula">
+      <h2 class="small-title">계산 공식</h2>
+      <strong>가로(mm) × 세로(mm) × 두께(mm) × 비중 ÷ 1,000,000 = 중량(kg)</strong>
+      <p>예: 1219 × 2438 × 3.2T 일반 철판 → 약 74.17kg</p>
+    </section>
+
+    <section class="card notice">
+      <strong>참고사항</strong><br>
+      계산 결과는 일반적인 재질 비중을 적용한 이론 중량입니다.
+      실제 철판은 제조 공차, 재질 성분, 표면 처리 등에 따라 실제 중량과 차이가 날 수 있습니다.
+      안전하중이나 정밀 계근이 필요한 작업에서는 실제 제품 사양과 계근값을 함께 확인하세요.
+    </section>
+  </main>
+
+  <script>
+    const material = document.getElementById("material");
+    const qty = document.getElementById("qty");
+    const width = document.getElementById("width");
+    const length = document.getElementById("length");
+    const thickness = document.getElementById("thickness");
+    const singleResult = document.getElementById("singleResult");
+    const totalResult = document.getElementById("totalResult");
+    const tonResult = document.getElementById("tonResult");
+    const error = document.getElementById("error");
+
+    function calculate() {
+      const density = Number(material.value);
+      const q = Number(qty.value);
+      const w = Number(width.value);
+      const l = Number(length.value);
+      const t = Number(thickness.value);
+
+      if (![density, q, w, l, t].every(Number.isFinite) || q <= 0 || w <= 0 || l <= 0 || t <= 0) {
+        singleResult.textContent = "—";
+        totalResult.textContent = "—";
+        tonResult.textContent = "";
+        error.textContent = "모든 항목에 0보다 큰 숫자를 입력해 주세요.";
+        return;
+      }
+
+      error.textContent = "";
+      const one = (w * l * t * density) / 1000000;
+      const total = one * q;
+
+      singleResult.textContent = one.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) + " kg";
+      totalResult.textContent = total.toLocaleString("ko-KR", { maximumFractionDigits: 2 }) + " kg";
+      tonResult.textContent = (total / 1000).toLocaleString("ko-KR", { maximumFractionDigits: 3 }) + " 톤";
+    }
+
+    [material, qty, width, length, thickness].forEach(el => {
+      el.addEventListener("input", calculate);
+      el.addEventListener("change", calculate);
+    });
+
+    calculate();
+  </script>
+</body>
+</html>
